@@ -1,46 +1,46 @@
-#after training, save the keras model and metadata
-
+import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
+from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
-from src.models.trainer import save_model_artifact, make_artifact_path
-from src.utils.logger import get_logger
-import os
 
-logger = get_logger("lstm_model")
+def make_lstm_sequences(data, lookback):
+    """
+    Convert a 1D array into supervised LSTM format (X, y).
+    Example: For lookback=10, each X is previous 10 timesteps and y is the next value.
+    """
+    X, y = [], []
+    for i in range(lookback, len(data)):
+        X.append(data[i - lookback:i])
+        y.append(data[i])
+    X, y = np.array(X), np.array(y)
+    return X.reshape(X.shape[0], X.shape[1], 1), y
 
-def build_lstm_univariate(input_shape, units=64, dropout=0.2):
-    m = Sequential()
-    m.add(Input(shape=input_shape))
-    m.add(LSTM(units, activation="tanh"))
-    m.add(Dropout(dropout))
-    m.add(Dense(1))
-    m.compile(optimizer="adam", loss="mse")
-    return m
+def build_lstm_univariate(input_shape):
+    """
+    Build a simple univariate LSTM network.
+    input_shape: (lookback, 1)
+    """
+    model = Sequential([
+        LSTM(64, return_sequences=False, input_shape=input_shape),
+        Dropout(0.2),
+        Dense(32, activation='relu'),
+        Dense(1)
+    ])
+    model.compile(optimizer='adam', loss='mse')
+    return model
 
-def train_lstm(model, Xtr, ytr, Xval, yval, epochs=30, batch_size=16, ticker="UNKNOWN"):
-    es = EarlyStopping(patience=8, restore_best_weights=True)
-    model.fit(Xtr, ytr, validation_data=(Xval, yval), epochs=epochs, batch_size=batch_size, callbacks=[es], verbose=0)
-    # Save keras model (h5)
-    try:
-        path = make_artifact_path("lstm", ticker)
-        # ensure keras saves to .h5 file
-        h5path = path.replace(".pkl", ".h5")
-        model.save(h5path)
-        metadata = {
-            "model": "lstm",
-            "ticker": ticker,
-            "train_rows": int(Xtr.shape[0]),
-            "epochs": int(epochs)
-        }
-        # write metadata json
-        base = h5path.replace(".h5", "")
-        meta_path = base + ".meta.json"
-        import json
-        with open(meta_path, "w") as f:
-            json.dump(metadata, f, default=str, indent=2)
-        logger.info(f"Saved LSTM model to {h5path} and metadata to {meta_path}")
-    except Exception as e:
-        logger.warning(f"Failed to save LSTM artifact: {e}")
-        h5path = None
-    return model, h5path
+def train_lstm(model, X_train, y_train, X_val, y_val, epochs=20, batch_size=16):
+    """
+    Train the given LSTM model with early stopping.
+    """
+    es = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True, verbose=0)
+    history = model.fit(
+        X_train, y_train,
+        validation_data=(X_val, y_val),
+        epochs=epochs,
+        batch_size=batch_size,
+        verbose=0,
+        callbacks=[es]
+    )
+    return model, history

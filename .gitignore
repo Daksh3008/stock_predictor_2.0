@@ -20,3 +20,10 @@ outputs/
 
 # Logs
 *.log
+
+# Artifacts
+models_cache/
+reports/
+*.png
+*.csv
+*.json

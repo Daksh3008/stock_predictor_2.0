@@ -5,6 +5,7 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 from src.models.trainer import save_model_artifact, make_artifact_path
 from src.utils.logger import get_logger
+from math import sqrt
 
 logger = get_logger("xgb_model")
 
@@ -22,8 +23,13 @@ def train_xgb_with_val(X_train, y_train, X_val, y_val, params=None, random_state
     model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
     preds = model.predict(X_val)
     # RMSE calculation (sklearn newer versions accepted squared=False)
-    rmse = float(mean_squared_error(y_val, preds, squared=False)) if hasattr(mean_squared_error, "__call__") else np.sqrt(((y_val - preds)**2).mean())
-
+    try:
+        # prefer new API if available
+        rmse = float(mean_squared_error(y_val, preds, squared=False))
+    except TypeError:
+        # fallback for old sklearn versions
+        rmse = float(sqrt(mean_squared_error(y_val, preds)))
+    
     # Save artifact + metadata
     try:
         path = make_artifact_path("xgb", ticker)
