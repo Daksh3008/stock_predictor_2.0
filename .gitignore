@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+
+# virtual environment
+venv/
+.env
+.env.*
+
+# Data, models, outputs
+models_cache/
+outputs/
+*.xlsx
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log

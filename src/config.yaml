@@ -1,0 +1,19 @@
+## `src/config.yaml`
+
+```yaml
+prediction:
+  start_date: "2005-01-01"
+  min_data_points: 200
+models:
+  xgboost:
+    enabled: true
+    params: {}
+  random_forest:
+    enabled: true
+  linear_regression:
+    enabled: true
+  lstm:
+    enabled: true
+    epochs: 30
+    batch_size: 16
+seed: 42

@@ -1,0 +1,11 @@
+pandas>=1.5
+numpy>=1.24
+scikit-learn>=1.2
+xgboost>=1.7
+tensorflow>=2.12
+joblib
+yfinance
+openpyxl
+shap
+pyyaml
+python-dotenv
