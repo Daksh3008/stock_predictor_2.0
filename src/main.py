@@ -47,13 +47,19 @@ def smoke(ticker, horizon, seed=42):
     ytr, yv = y_tab[:split], y_tab[split:]
 
     # XGBoost
-    mdl_xgb, _, rm_xgb = train_xgb_with_val(Xtr, ytr, Xv, yv, params=None, random_state=seed)
+    #mdl_xgb, _, rm_xgb = train_xgb_with_val(Xtr, ytr, Xv, yv, params=None, random_state=seed)
+    mdl_xgb, _, rm_xgb, xgb_path = train_xgb_with_val(Xtr, ytr, Xv, yv, params=None, random_state=seed, ticker=ticker)
+    
     # RF
-    mdl_rf = train_rf(Xtr, ytr)
+    #mdl_rf = train_rf(Xtr, ytr)
+    mdl_rf, rf_path = train_rf(Xtr, ytr, ticker=ticker)
+
     # LR
     mdl_lr = train_linreg(Xtr, ytr)
+    mdl_lr, lr_path = train_linreg(Xtr, ytr, ticker=ticker)
+
     # LSTM: prepare sequences shaped for LSTM
-    # LSTM train skipped in smoke for speed (but you can train if desired)
+    mdl_lstm, lstm_path = train_lstm(mdl_lstm, Xtr_seq, ytr_seq, Xv_seq, yv_seq, epochs=10, batch_size=16, ticker=ticker)
 
     # build one-day predictions: use last lookback window
     last_window = X_tab[-1].reshape(1, -1)
