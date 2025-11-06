@@ -1,7 +1,5 @@
 # src/utils/logger.py
-import logging
-import sys
-
+import logging, sys
 def get_logger(name=__name__, level=logging.INFO):
     logger = logging.getLogger(name)
     if not logger.handlers:
